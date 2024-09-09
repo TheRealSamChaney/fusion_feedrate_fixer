@@ -29,7 +29,7 @@ def get_z_value(line):
 
 def adjust_gcode_feedrate(file_path, output_path):
 
-    desired_travel_feedrate = 100
+    desired_travel_feedrate = 100 # EDIT THIS VALUE TO SET YOUR DESIRED FEEDRATE
 
     # Read the original G-code file
     with open(file_path, 'r') as file:
