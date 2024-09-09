@@ -2,20 +2,15 @@ import os
 import re
 
 def set_line_feedrate(line, feedrate):
-    print(f"In set_line_feedrate and line is {line}, feedrate: {feedrate}")
-    
+    # print(f"In set_line_feedrate and line is {line}, feedrate: {feedrate}")
     stripped_line = line.strip()
     new_feedrate_line = stripped_line
     if 'F' in line:
-        # print(f"In set_line_feedrate, F in line")
         line_before_F = stripped_line.split('F')[0]
-        # print(f"In set_line_feedrate and line_before_F is {line_before_F}")
         new_feedrate_line = f'{line_before_F}{str(feedrate)}\n'
-        # print(f"In set_line_feedrate and new_feedrate_line is {new_feedrate_line}")
     else:
-        # print(f"In set_line_feedrate, NO F in line")
         new_feedrate_line = stripped_line + ' F' + str(feedrate) + '\n'
-        # print(f"In set_line_feedrate and new_feedrate_line is {new_feedrate_line}")
+    print(f"setting feedrate line {new_feedrate_line.strip()}")
     return new_feedrate_line
         
 def get_z_value(line):
@@ -23,7 +18,7 @@ def get_z_value(line):
     z_string = stripped_line.split('Z')[1]
     if ' F' in line:
         z_string = z_string.split(' F')[0] # Remove everything after Z before  F
-    print(f"z_value: {z_string}")
+    # print(f"z_value: {z_string}")
     z_value = float(z_string)
     return z_value
 
@@ -44,13 +39,12 @@ def adjust_gcode_feedrate(file_path, output_path):
     # Process each line of G-code
     for index, line in enumerate(lines):
         line_number = index + 1
-        print(f'line_number: {line_number}')
+        # print(f'line_number: {line_number}')
         new_line = line
         stripped_line = line.strip()
-        # feed_string = f" F{desired_travel_feedrate}"
 
         if 'G0' in line:
-            print(f"G0 in line {line_number}")
+            # print(f"G0 in line {line_number}")
             # Fusion 360 only uses a couple G0 moves at the beginning
             if 'Z' in line:
                 z_value = get_z_value(line)
@@ -63,23 +57,22 @@ def adjust_gcode_feedrate(file_path, output_path):
                 new_line = set_line_feedrate(line, desired_travel_feedrate)
             # new_line = line
         if 'G1' in line:
-            print(f'G1 in line {line_number}')
+            # print(f'G1 in line {line_number}')
             if 'Z' in line:
-                print(f'Z in line {line_number}')
+                # print(f'Z in line {line_number}')
                 z_value = get_z_value(line)
                 if z_value > 0:
-                    print(f"z > 0")
+                    print(f"Z > 0 on line {line_number}, we are in travel moves!")
                     new_line = set_line_feedrate(line, desired_travel_feedrate)
-                    print(f"In z > 0 and new_line is {new_line}")
                     in_travel = True
                 else: # Unsafe move, Z is in material <0
                     if in_travel:
+                        print(f"Z <= 0 on line {line_number}, we are no longer in travel!")
                         first_line_after_travel = True # This should become true when we are (were) in travel but Z is now <0
-                    in_travel = False
+                        in_travel = False
             if 'F' in line:
-                print(f'F in line')
+                # print(f'F in line {line_number}')
                 line_feedrate = float(stripped_line.split('F')[1])
-                print(f"stripped_line: {stripped_line}")
                 previous_feedrate = line_feedrate # Always set previous_feedrate to the current feedrate
                 new_line = line
             if in_travel:
@@ -88,7 +81,6 @@ def adjust_gcode_feedrate(file_path, output_path):
                 if first_line_after_travel:
                     new_line = set_line_feedrate(line, previous_feedrate)
                     first_line_after_travel = False
-                
         # Append the modified line to the new lines list
         new_lines.append(new_line)
 
