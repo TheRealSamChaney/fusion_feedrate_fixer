@@ -51,7 +51,7 @@ def adjust_gcode_feedrate(file_path, output_path):
     first_line_after_travel = False
     z_max = get_highest_z_value(lines)
     travel_threshold_height = z_max - clearance_offset
-    in_main_code = False
+    ignore_line_characters = ['%', '(', 'N']
     print(f"z_max: {z_max}, travel_threshold_height: {travel_threshold_height}")
     
     # Process each line of G-code
@@ -61,13 +61,12 @@ def adjust_gcode_feedrate(file_path, output_path):
         new_line = line
         stripped_line = line.strip()
         
-        if 'N10' in line:
-            in_main_code = True # Main code always starts after N10 operation name line
+        if line[0] in ignore_line_characters:
+            print(f"First characters was in ignore_line_characters. Skipping line {line_number}. Line was {line.strip()}")
         
-        if in_main_code: # Ignore the comments and other gcode at start of file
-        
+        else:
             if 'F' in line: # Regardless of type of move (G0, G1, G3 etc.) if there is a feedrate we store it as the previous_feedrate
-                print(f'F in line number {line_number}')
+                # print(f'F in line number {line_number}')
                 line_feedrate = float(stripped_line.split('F')[1])
                 previous_feedrate = line_feedrate # Always set previous_feedrate to the current feedrate
 
