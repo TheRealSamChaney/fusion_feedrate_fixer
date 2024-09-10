@@ -7,9 +7,12 @@ def set_line_feedrate(line, feedrate):
     new_feedrate_line = stripped_line
     if 'F' in line:
         line_before_F = stripped_line.split('F')[0]
-        new_feedrate_line = f'{line_before_F}{str(feedrate)}\n'
+        new_feedrate_line = f'{line_before_F} F{str(feedrate)}\n'
+        print(f"In set_line_feedrate, F in line and line_before_F: {line_before_F}, new_feedrate_line: {new_feedrate_line.strip()}")
     else:
-        new_feedrate_line = stripped_line + ' F' + str(feedrate) + '\n'
+        new_feedrate_line = f'{stripped_line} F{str(feedrate)}\n'
+        print(f"In set_line_feedrate, NO F in line, new_feedrate_line: {new_feedrate_line.strip()}")
+        
     print(f"setting feedrate line {new_feedrate_line.strip()}")
     return new_feedrate_line
         
@@ -21,6 +24,16 @@ def get_z_value(line):
     # print(f"z_value: {z_string}")
     z_value = float(z_string)
     return z_value
+
+def get_highest_z_value(lines):
+    z_max = 0
+    for line in lines:
+        if 'G1' in line:
+            if 'Z' in line:
+                z_value = get_z_value(line)
+                if z_value > z_max:
+                    z_max = z_value
+    return z_max
 
 def adjust_gcode_feedrate(file_path, output_path):
 
@@ -35,11 +48,13 @@ def adjust_gcode_feedrate(file_path, output_path):
     in_travel = False
     previous_feedrate = None
     first_line_after_travel = False
-
+    z_max = get_highest_z_value(lines)
+    print(f"z_max: {z_max}")
+    
     # Process each line of G-code
     for index, line in enumerate(lines):
         line_number = index + 1
-        # print(f'line_number: {line_number}')
+        # print(f'line_number: {line_number}, z_max: {z_max}')
         new_line = line
         stripped_line = line.strip()
 
