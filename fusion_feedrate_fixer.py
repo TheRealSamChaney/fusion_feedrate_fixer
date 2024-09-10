@@ -38,7 +38,7 @@ def get_highest_z_value(lines):
 def adjust_gcode_feedrate(file_path, output_path):
 
     desired_travel_feedrate = 300 # EDIT THIS VALUE TO SET YOUR DESIRED FEEDRATE
-    clearance_offset = 0.4 # EDIT THIS OFFSET! Distance below the max Z height that we'll consider travel moves. In Fusion: Heights tab -> Clearance Height -> Offset
+    clearance_offset = 0.5 # EDIT THIS OFFSET! Distance below the max Z height that we'll consider travel moves. In Fusion: Heights tab -> Clearance Height -> Offset
 
     # Read the original G-code file
     with open(file_path, 'r') as file:
