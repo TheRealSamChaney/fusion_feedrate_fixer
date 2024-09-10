@@ -38,6 +38,7 @@ def get_highest_z_value(lines):
 def adjust_gcode_feedrate(file_path, output_path):
 
     desired_travel_feedrate = 100 # EDIT THIS VALUE TO SET YOUR DESIRED FEEDRATE
+    clearance_offset = 0.4 # EDIT THIS OFFSET! Distance below the max Z height that we'll consider travel moves. In Fusion: Heights tab -> Clearance Height -> Offset
 
     # Read the original G-code file
     with open(file_path, 'r') as file:
@@ -49,7 +50,8 @@ def adjust_gcode_feedrate(file_path, output_path):
     previous_feedrate = None
     first_line_after_travel = False
     z_max = get_highest_z_value(lines)
-    print(f"z_max: {z_max}")
+    travel_threshold_height = z_max - clearance_offset
+    print(f"z_max: {z_max}, travel_threshold_height: {travel_threshold_height}")
     
     # Process each line of G-code
     for index, line in enumerate(lines):
@@ -63,26 +65,26 @@ def adjust_gcode_feedrate(file_path, output_path):
             # Fusion 360 only uses a couple G0 moves at the beginning
             if 'Z' in line:
                 z_value = get_z_value(line)
-                if z_value > 0:
+                if z_value >= travel_threshold_height:
                     # If we have Z, it has to be positive to set to fast travel
                     # I think Fusion never uses G0 for unsafe moves with Z<0 but better safe than sorry
                     new_line = set_line_feedrate(line, desired_travel_feedrate)
             else:
                 # If we are not moving in Z, it's safe to do fast travel
                 new_line = set_line_feedrate(line, desired_travel_feedrate)
-            # new_line = line
+        
         if 'G1' in line:
             # print(f'G1 in line {line_number}')
             if 'Z' in line:
                 # print(f'Z in line {line_number}')
                 z_value = get_z_value(line)
-                if z_value > 0:
-                    print(f"Z > 0 on line {line_number}, we are in travel moves!")
+                if z_value >= travel_threshold_height:
+                    print(f"Z >= threshold on line {line_number}, we are in travel moves!")
                     new_line = set_line_feedrate(line, desired_travel_feedrate)
                     in_travel = True
                 else: # Unsafe move, Z is in material <0
                     if in_travel:
-                        print(f"Z <= 0 on line {line_number}, we are no longer in travel!")
+                        print(f"Z < threshold on line {line_number}, we are no longer in travel!")
                         first_line_after_travel = True # This should become true when we are (were) in travel but Z is now <0
                         in_travel = False
             if 'F' in line:
