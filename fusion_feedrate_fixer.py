@@ -17,12 +17,14 @@ def set_line_feedrate(line, feedrate):
     return new_feedrate_line
         
 def get_z_value(line):
-    stripped_line = line.strip()
-    z_string = stripped_line.split('Z')[1]
-    if ' F' in line:
-        z_string = z_string.split(' F')[0] # Remove everything after Z before  F
-    # print(f"z_value: {z_string}")
+    # Split by spaces to get the different sections then isolate the one with the Z value
+    for part in line.split(): # Assuming space before and after Z number part, seems safe
+        if part.startswith('Z'):
+            z_string = part[1:] # Assuming Z is the only character before numbers start
+            # print(f'In get_z_value, part was {part} and z_string is {z_string}')
+            break
     z_value = float(z_string)
+    # print(f'In get_z_value, z_value was {z_value}')
     return z_value
 
 def get_highest_z_value(lines):
